@@ -61,11 +61,22 @@ pthread_t g_pwmCtrlPthreadId;
  ****************************************************************************/
 int bcas_board_initialize(void)
 {
+    int ret;
     //serial_dev_initialize();
 
-    //pwm_dev_initialize();
+    ret = pwm_dev_init();
+    if (ret != 0)
+    {
+        error_print(ret);
+        return ret;
+    }
 
-    gpio_dev_init();
+    ret = gpio_dev_init();
+    if (ret != 0)
+    {
+        error_print(ret);
+        return ret;
+    }
 
     return 0;
 }
@@ -80,14 +91,14 @@ int main(int argc, FAR char *argv[])
 int bcas_systemapp_main(int argc, char *argv[])
 #endif
 {
-    int32_t result;
+    int32_t ret;
     printf("system app start!!!\n");
     
-    result = bcas_board_initialize();
-    if (result != 0)
+    ret = bcas_board_initialize();
+    if (ret != 0)
     {
-        printf("bcas board initialize fail!!!, ret = %d\n", result);
-        return result;
+        error_print(ret);
+        return ret;
     }
 #if 0
 
@@ -121,10 +132,10 @@ int bcas_systemapp_main(int argc, char *argv[])
     }
 #endif
 
-    for (;;)
-    {
-        sleep(8000);
-    }
+    //for (;;)
+    //{
+        //sleep(8000);
+    //}
 
     printf("bcas_systemapp_main process exit\n");
     return 0;

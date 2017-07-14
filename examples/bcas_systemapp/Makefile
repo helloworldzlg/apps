@@ -47,7 +47,7 @@ STACKSIZE = $(CONFIG_EXAMPLES_BCAS_SYSTEMAPP_STACKSIZE)
 # bcas system app!
 # bcas_gpio.c bcas_pwm.c bcas_serial.c bcas_pid.c
 ASRCS =
-CSRCS = bcas_gpio.c
+CSRCS = bcas_gpio.c bcas_pwm.c
 MAINSRC = bcas_systemapp_main.c
           
 CONFIG_EXAMPLES_BCAS_SYSTEMAPP_PROGNAME ?= BCAS_SYSTEMAPP$(EXEEXT)

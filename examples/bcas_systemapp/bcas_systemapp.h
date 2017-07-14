@@ -8,7 +8,21 @@
 #include <nuttx/config.h>
 
 extern int32_t gpio_dev_init(void);
+extern int32_t pwm_dev_init(void);
 
+
+/*****************************************************************************
+ * Description   : debug print info macro
+ * Description   : debug print info macro
+*****************************************************************************/
+#define info_print(msg) \
+    printf("%s %s Line %d msg: %s\n", __FILE__, __func__, __LINE__, msg);
+
+#define warning_print() \
+    printf("%s %s Line %d waring!!! ret : %d\n", __FILE__, __func__, __LINE__);
+
+#define error_print(ret) \
+    printf("%s %s Line %d error!!! ret : %d\n", __FILE__, __func__, __LINE__, ret);
 
 #if 0
 #define BCAS_ENCODE_RATE              (160 * 20)
