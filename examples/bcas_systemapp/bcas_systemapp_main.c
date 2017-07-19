@@ -93,13 +93,16 @@ int bcas_systemapp_main(int argc, char *argv[])
 {
     int32_t ret;
     printf("system app start!!!\n");
-    
+   
     ret = bcas_board_initialize();
     if (ret != 0)
     {
         error_print(ret);
         return ret;
     }
+    
+    gpio_test();
+
 #if 0
 
 
@@ -132,10 +135,10 @@ int bcas_systemapp_main(int argc, char *argv[])
     }
 #endif
 
-    //for (;;)
-    //{
-        //sleep(8000);
-    //}
+    for (;;)
+    {
+        sleep(8000);
+    }
 
     printf("bcas_systemapp_main process exit\n");
     return 0;

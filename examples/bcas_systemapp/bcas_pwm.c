@@ -22,25 +22,192 @@
 #include "bcas_systemapp.h"
 #include <nuttx/drivers/pwm.h>
 
+
+#define MAX_PWM_DUTY              (65535)
+
+typedef enum
+{
+    PWM_CH1 = 1,
+    PWM_CH3 = 3,
+
+    LEFT_WHEEL  = PWM_CH3,
+    RIGHT_WHEEL = PWM_CH1,
+}PWM_CHANNEL_E;
+
+/* this version wheel motor Low Level(full speed) HIGH Level : zero speed */
+#define PWM_VALUE(val)            (MAX_PWM_DUTY - val)   
+
+int32_t set_pwm_configs(int32_t pwm_fd, struct pwm_info_s* p_pwm_config);
+int32_t start_pwm(int32_t pwm_fd);
+int32_t stop_pwm(int32_t pwm_fd);
+
+
+
 static bool g_bcas_pwm_init = false;
+
+
+//typedef enum
+//{
+//    BOTTOM_BRASH_MOTOR = PWM_3,
+//    LEFT_WHEEL_MOTOR = PWM_8_CH1,
+//}BCAS_MOTOR_TYPE_E;
 
 typedef struct
 {
+    int32_t pwm_id;
     int32_t pwm_fd;
-
+    int32_t (*fp_set_pwm_configs)(int32_t pwm_fd, struct pwm_info_s* p_pwm_config);
+    int32_t (*fp_start_pwm)(int32_t pwm_fd);
+    int32_t (*fp_stop_pwm)(int32_t pwm_fd);
 }BCAS_PWM_S;
 
 BCAS_PWM_S g_bcas_pwm[] =
 {
     /* wheel motor */
-    {0, },
-
+    {PWM_8, 0, set_pwm_configs, start_pwm, stop_pwm},
+    
     /* bottom brash */
-    //{0, },
+    {PWM_3, 0, set_pwm_configs, start_pwm, stop_pwm},
+
     
     /* front brash */
     //{0, },
 };
+
+
+/*****************************************************************************
+ * Function      : set_pwm_configs
+ * Description   : 
+ * Input         : int32_t pwm_fd 
+                   pwm_info_s* p_pwm_config
+ * Output        : None
+ * Return        : 
+ * Others        : 
+ * Record
+ * 1.Date        : 20170714
+ *   Author      : zhanglg
+ *   Modification: Created function
+
+*****************************************************************************/
+int32_t set_pwm_configs(int32_t pwm_fd, struct pwm_info_s* p_pwm_config)
+{
+    int32_t ret;
+    
+    ret = ioctl(pwm_fd, PWMIOC_SETCHARACTERISTICS, (unsigned long)((uintptr_t)p_pwm_config));
+    if (ret < 0)  
+    {    
+        error_print(ret);
+        return ret;
+    }
+
+    return BCAS_RETURN_SUCCESS;
+}
+
+/*****************************************************************************
+ * Function      : start_pwm
+ * Description   : 
+ * Input         : int32_t pwm_fd  
+ * Output        : None
+ * Return        : 
+ * Others        : 
+ * Record
+ * 1.Date        : 20170714
+ *   Author      : zhanglg
+ *   Modification: Created function
+
+*****************************************************************************/
+int32_t start_pwm(int32_t pwm_fd)
+{
+    int ret;
+    ret = ioctl(pwm_fd, PWMIOC_START, 0);
+    if (ret < 0)
+    {    
+        error_print(ret);
+        return ret;
+    }
+    return BCAS_RETURN_SUCCESS;
+}
+
+/*****************************************************************************
+ * Function      : stop_pwm
+ * Description   : 
+ * Input         : int32_t pwm_fd  
+ * Output        : None
+ * Return        : 
+ * Others        : 
+ * Record
+ * 1.Date        : 20170714
+ *   Author      : zhanglg
+ *   Modification: Created function
+
+*****************************************************************************/
+int32_t stop_pwm(int32_t pwm_fd)
+{
+    int32_t ret;
+    ret = ioctl(pwm_fd, PWMIOC_STOP, 0);
+    if (ret < 0)  
+    {    
+        error_print(ret);
+        return ret;  
+    }
+    return BCAS_RETURN_SUCCESS;
+}
+
+/*****************************************************************************
+ * Function      : pwm_pause
+ * Description   : pause wheel run because this version pwm default continuous run
+ * Input         : int32_t pwm_fd  
+ * Output        : None
+ * Return        : 
+ * Others        : 
+ * Record
+ * 1.Date        : 20170719
+ *   Author      : zhanglg
+ *   Modification: Created function
+
+*****************************************************************************/
+int32_t pwm_pause(int32_t pwm_fd)
+{
+    struct pwm_info_s pwm_info;
+    BCAS_PWM_S* p_wheel_pwm = &g_bcas_pwm[WHEEL_PWM];
+
+    memset(&pwm_info, 0, sizeof(pwm_info));
+    pwm_info.frequency = 100;
+    pwm_info.channels[0].channel = LEFT_WHEEL;
+    pwm_info.channels[0].duty    = PWM_VALUE(0);
+
+    pwm_info.channels[1].channel = RIGHT_WHEEL;
+    pwm_info.channels[1].duty    = PWM_VALUE(0);
+    
+    p_wheel_pwm->fp_set_pwm_configs(pwm_fd, &pwm_info);
+    p_wheel_pwm->fp_start_pwm(pwm_fd);
+
+    return BCAS_RETURN_SUCCESS;
+}
+
+void pwm_test()
+{
+    int32_t pwm_fd;
+    struct pwm_info_s pwm_info;
+    BCAS_PWM_S* p_wheel_pwm = &g_bcas_pwm[WHEEL_PWM];
+
+    pwm_fd = p_wheel_pwm->pwm_fd;
+
+    memset(&pwm_info, 0, sizeof(pwm_info));
+    pwm_info.frequency = 100;
+    pwm_info.channels[0].channel = LEFT_WHEEL;
+    pwm_info.channels[0].duty    = PWM_VALUE(0);
+
+    pwm_info.channels[1].channel = RIGHT_WHEEL;
+    pwm_info.channels[1].duty    = PWM_VALUE(0);
+    
+    p_wheel_pwm->fp_set_pwm_configs(pwm_fd, &pwm_info);
+    p_wheel_pwm->fp_start_pwm(pwm_fd);
+    sleep(10);
+    p_wheel_pwm->fp_stop_pwm(pwm_fd);
+    p_wheel_pwm->fp_stop_pwm(pwm_fd);
+    for (;;);
+}
 
 #if 0
 
@@ -399,16 +566,18 @@ void *pwm_ctrl_function(void* thread_param)
 int32_t pwm_dev_init(void)
 {
     int32_t i;
-    int32_t fd;
+    int32_t fd, ret;
     char dev_path[16];
     int32_t pwm_dev_num = sizeof(g_bcas_pwm)/sizeof(BCAS_PWM_S);
+    BCAS_PWM_S* p_pwm_dev = &g_bcas_pwm[0];
+    struct pwm_info_s pwm_info;
 
     if (!g_bcas_pwm_init)
     {
         for (i = 0; i < pwm_dev_num; i++)
         {
             memset(dev_path, '\0', sizeof(dev_path));
-            sprintf(dev_path, "/dev/pwm%d", i);
+            sprintf(dev_path, "/dev/pwm%d", p_pwm_dev[i].pwm_id);
 
             fd = open(dev_path, O_RDONLY);
             if (fd < 0)
@@ -417,6 +586,17 @@ int32_t pwm_dev_init(void)
                 return fd;
             }
             g_bcas_pwm[i].pwm_fd = fd;
+
+            /* this version wheel pwm default continuous run */
+            if (i == WHEEL_PWM)
+            {
+                ret = pwm_pause(fd);
+                if (BCAS_RETURN_SUCCESS != ret)
+                {
+                    error_print(ret);
+                    return ret;
+                }
+            }
         }
 
         g_bcas_pwm_init = true;

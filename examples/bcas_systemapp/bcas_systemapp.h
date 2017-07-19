@@ -7,8 +7,25 @@
 #include <pthread.h>
 #include <nuttx/config.h>
 
+#define BCAS_RETURN_SUCCESS                 (0)
+#define BCAS_RETURN_FAILURE                 (-1)
+
+typedef enum
+{
+    PWM_8 = 0,
+    PWM_3 = 1,
+
+    WHEEL_PWM        = PWM_8,
+    BUTTOM_BRASH_PWM = PWM_3,
+}HARDWARE_DEV_ID_E;
+
+
 extern int32_t gpio_dev_init(void);
 extern int32_t pwm_dev_init(void);
+extern void pwm_test();
+extern void gpio_test();
+extern int gpio_set_value(bool val);
+extern int32_t pwm_pause(int32_t pwm_fd);
 
 
 /*****************************************************************************
